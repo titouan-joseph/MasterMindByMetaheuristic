@@ -1,4 +1,5 @@
 import random
+import statistics
 
 BLACK = "black"
 WHITE = "white"
@@ -38,7 +39,7 @@ class Board:
         self.list = COLORS
         random.shuffle(self.list)
 
-    def getScore(self):
+    def getP(self):
         result = 0
         for index, ball in enumerate(self.list):
             if ball.color == self.solution:
@@ -63,6 +64,21 @@ class Board:
                 highestBoard = board
         return highestBoard
 
+    def jumpingJack(self):
+        print("🏃‍ 🏃‍ 🏃️ 🏃‍ 🏃‍ 🏃️")
+        self.fitness()
+
+    def geneticSolution(self):
+        self.fillRandomly()
+        scores = self.getScore()
+        toBeTestedList = self.list
+
+        while self.getScore(toBeTestedList) < scores:
+            toBeTestedList = self.permutation(self.list)
+
+        # On aura un meilleur score
+
+
 
 def score(p, m):
     """
@@ -73,13 +89,6 @@ def score(p, m):
     return (p / BALL_COUNT) * 25 + (m / BALL_COUNT) * 12.5
 
 
-def eval(c, cj):
-    """
-    :param c: candidate solution list of balls
-    :param cj: target solution list of balls
-    :return: score difference and c's score
-    """
-    return score(*compare(c, cj))
 
 
 def compare(c1, c2):
@@ -97,9 +106,14 @@ def compare(c1, c2):
     return p, m
 
 
-
 SOLUTION = [Ball(color) for color in COLORS]
 BALL_COUNT = len(SOLUTION)
+
+
+def geneticSolution(board):
+    while board.getScore() < 4 and board.tryCount < board.maxTry:
+        pass
+
 
 if __name__ == '__main__':
     mBoard = Board(SOLUTION)
