@@ -32,6 +32,7 @@ class Board:
         self.list = []
         self.solution = solution
         self.tryCount = 0  # number of trys
+        self.history = []
 
     def fillRandomly(self):
         self.list = COLORS
@@ -52,6 +53,15 @@ class Board:
         # for i in len(self.list):
         # if self.list[i] != self.solution[i] :
         pass
+
+    def fitness(self):
+        highestScore = 0
+        highestBoard = None
+        for board, score in self.history:
+            if score > highestScore:
+                highestScore = score
+                highestBoard = board
+        return highestBoard
 
 
 def score(p, m):
@@ -86,9 +96,6 @@ def compare(c1, c2):
             m += 1
     return p, m
 
-
-def fitness():
-    raise NotImplementedError
 
 
 SOLUTION = [Ball(color) for color in COLORS]
