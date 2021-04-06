@@ -36,18 +36,11 @@ class Board:
         self.history = []
 
     def fillRandomly(self):
-        self.list = COLORS
-        random.shuffle(self.list)
-
-    def getP(self):
-        result = 0
-        for index, ball in enumerate(self.list):
-            if ball.color == self.solution:
-                result += 1
-        return result
+        for _ in range(4):
+            self.list.append(random.choice(COLORS))
 
     def isGameFinished(self):
-        return self.getScore() == 4
+        return self.get_pm()[0] == 4
 
     def getGameState(self):
         state = []
@@ -56,13 +49,7 @@ class Board:
         pass
 
     def fitness(self):
-        highestScore = 0
-        highestBoard = None
-        for board, score in self.history:
-            if score > highestScore:
-                highestScore = score
-                highestBoard = board
-        return highestBoard
+        return statistics.mean([self.getScore(story) for story in self.history])
 
     def jumpingJack(self):
         print("🏃‍ 🏃‍ 🏃️ 🏃‍ 🏃‍ 🏃️")
