@@ -155,7 +155,7 @@ def get_m_candidats(proposals: List[Board], NUM_SELECTED):
             out.append(best[val][1])
             i += 1
     # WARNING CAN RETURN NULL
-    print('[DEBUG] len :', len(out), ', m candidates selected :', out)
+    # print('[DEBUG] len :', len(out), ', m candidates selected :', out)
     return out
 
 
@@ -216,43 +216,44 @@ def geneticSolution(board, proposals):
     won = False
     finished = False
     while not finished:
-        proposals = population_mutation(proposals)
-        proposals = get_m_candidats(proposals, len(proposals) // 2)
-        proposals = get_next_generation(proposals)
+        if board.tryCount >= board.maxTry:
+            break
         if len(proposals) == 1:
-            finished = True
+            proposals = population_mutation(proposals)
+        else:
+            proposals = population_mutation(proposals)
+            proposals = get_m_candidats(proposals, len(proposals) // 2)
+            proposals = get_next_generation(proposals)
         # board.history.append(proposals)
         board.tryCount += 1
         
         for proposal in proposals:
             proposal.history.append(proposal.list)
             if proposal.getScore() == 100:
-                # print("🥳 solution found ", proposal)
                 won = True
                 finished = True
                 break
-        if board.tryCount > board.maxTry:
-            finished = True
 
-            
         # print("Proposal : ", proposals)
-    print("Game ended with ", board.tryCount, " attempts. The proposition(s) was : ", proposals)
-    if mBoard.solution in [board.list for board in proposals]:
-        won = True
-        print("🥳 solution found ")
-    else:
-        print("WARNING You lost !")
-        print("Your score is", proposals[0].getScore(), " %")
-    return won 
+    if not STATS:
+        print("Game ended with ", board.tryCount, " attempts. The proposition(s) was : ", proposals)
+        if mBoard.solution in [board.list for board in proposals]:
+            won = True
+            print("🥳 solution found ")
+        else:
+            print("WARNING You lost !")
+            print("Your score is", proposals[0].getScore(), " %")
+    return won, proposals[0].getScore()
 
 
 if __name__ == '__main__':
-    
-    NUM_SELECTED = 15  # Number of selected values for the fitness choice
+
+    NUM_SELECTED = 30  # Number of selected values for the fitness choice
     WEIGHT_P = 25
     WEIGHT_M = 12.5
-    FIRST_GENERERATION_POPULATION = 1000
+    FIRST_GENERERATION_POPULATION = 2000
     BALLS_COUNT = 4
+    STATS = False
 
     # Pawns initialisation before starting the game
     SOLUTION = [Ball(random.choice(COLORS)) for _ in range(BALLS_COUNT)]
