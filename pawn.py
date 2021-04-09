@@ -1,5 +1,4 @@
 import random
-import statistics
 import copy
 from typing import List
 
@@ -26,7 +25,7 @@ class Ball:
         return self.color
 
     def __eq__(self, other):
-        return self.color == other.color
+        return self.color == other if type(other) == str else self.color == other.color
     
     def __repr__(self):
         return str(self)
@@ -42,7 +41,7 @@ class Board:
 
     def fillRandomly(self):
         for _ in range(4):
-            self.list.append(random.choice(COLORS))
+            self.list.append(Ball(random.choice(COLORS)))
         return self
 
     def getGameState(self):
@@ -54,12 +53,10 @@ class Board:
     def fitness(self, current_candidate):
         # return statistics.mean([eval(current_candidate, story) for story in self.history])
         results = 0
+        # print('[DEBUG] history = ', self.history)
         for story in self.history:
             results += eval(current_candidate, story)
-        if len(self.history) == 0:
-            return results
-        else:
-            return results / len(self.history)
+        return results if len(self.history) == 0 else results / len(self.history)
 
     def jumpingJack(self, current_candidate):
         print("🏃‍ 🏃‍ 🏃️ 🏃‍ 🏃‍ 🏃️")
@@ -112,7 +109,7 @@ def score(p, m):
     :param m: number of misplaced colors, but still correct
     :return: the current game score
     """
-    return (p ) * WEIGHT_P + (m ) * WEIGHT_M
+    return p * WEIGHT_P + m * WEIGHT_M
 
 
 def compare(c1, c2):
@@ -123,14 +120,19 @@ def compare(c1, c2):
     """
     p, m = 0, 0
     for index, ball in enumerate(c1):
-        # print('[DEBUG]', type(ball))
-        # print('[DEBUG]', type(c2[index]))
+        # print('[DEBUG] ball ', type(ball), ball)
+        # print('[DEBUG] c2[index] :', type(c2[index]), c2[index])
+        # print('[DEBUG] c1[index] :', type(c1[index]), c1[index])
         ball = Ball(ball)
         if ball == c2[index]:
             p += 1
         elif ball in c2:
             m += 1
+        # print('[DEBUG]c1 =', c1)
+        # print('[DEBUG]c2 =', c2)
+        # print('[DEBUG] p =', p, 'm =', m)
     return p, m
+
 
 def get_m_candidats(proposals: List[Board], NUM_SELECTED):
     """
@@ -145,7 +147,7 @@ def get_m_candidats(proposals: List[Board], NUM_SELECTED):
         fit = elem.fitness(elem.list)
         best.append((fit, elem))
     # Sorting the fitness values computed, according to their fitness
-    best.sort(key=lambda tup: tup[0], reverse=True)
+    best.sort(key=lambda tup: tup[0])
     # Selecting the final best elements (appart from the null values)
     i = 0
     for val in range(len(best)):
@@ -153,6 +155,7 @@ def get_m_candidats(proposals: List[Board], NUM_SELECTED):
             out.append(best[val][1])
             i += 1
     # WARNING CAN RETURN NULL
+    print('[DEBUG] len :', len(out), ', m candidates selected :', out)
     return out
 
 
@@ -165,7 +168,7 @@ def proposal_mutation(proposal: Board):
     random_index = random.randint(0, len(proposal.list)-1)
     current_color = proposal.list[random_index]
     color_candidate = copy.deepcopy(COLORS)
-    color_candidate = [color for color in color_candidate if color != current_color] 
+    color_candidate = [color for color in color_candidate if color != current_color.color]
     random_color = random.choice(color_candidate)
     proposal.solution[random_index].color = random_color
     return proposal
@@ -173,11 +176,11 @@ def proposal_mutation(proposal: Board):
 
 def population_mutation(proposals):
     """
-    :param proposal: list the candidate solution
+    :param proposals: list the candidate solution
     :return: the mutated solution list
     """
     for elem in proposals:
-        elem = proposal_mutation(elem)
+        proposal_mutation(elem)
     return proposals
 
 
@@ -199,6 +202,7 @@ def proposal_generation(p1: Board, p2: Board):
     mBoard.history += p2.history
     return mBoard
 
+
 def get_next_generation(proposals: List[Board]):
     res = []
     for index, proposal in enumerate(proposals):
@@ -208,45 +212,52 @@ def get_next_generation(proposals: List[Board]):
     return res
             
 
-
 def geneticSolution(board, proposals):
     won = False
-    while  board.tryCount <= board.maxTry:
+    finished = False
+    while not finished:
         proposals = population_mutation(proposals)
-        proposals = get_m_candidats(proposals, len(proposals) / 2)
+        proposals = get_m_candidats(proposals, len(proposals) // 2)
         proposals = get_next_generation(proposals)
-        #board.history.append(proposals)
+        if len(proposals) == 1:
+            finished = True
+        # board.history.append(proposals)
         board.tryCount += 1
         
-        for proposal in proposals: 
+        for proposal in proposals:
+            proposal.history.append(proposal.list)
             if proposal.getScore() == 100:
-                print("🥳 solution found ", proposal)
-                break 
+                # print("🥳 solution found ", proposal)
+                won = True
+                finished = True
+                break
+        if board.tryCount > board.maxTry:
+            finished = True
+
             
-        print("Proposal : ", proposals)
-    if board.tryCount < board.maxTry: 
+        # print("Proposal : ", proposals)
+    print("Game ended with ", board.tryCount, " attempts. The proposition(s) was : ", proposals)
+    if mBoard.solution in [board.list for board in proposals]:
         won = True
-        print("Game ended with " + board.tryCount+ " attempts. The solution was : ")
-        print(board.list)
-    else : 
+        print("🥳 solution found ")
+    else:
         print("WARNING You lost !")
         print("Your score is", proposals[0].getScore(), " %")
     return won 
 
+
 if __name__ == '__main__':
     
-    NUM_SELECTED = 100 # Number of selected values for the fitness choice
+    NUM_SELECTED = 15  # Number of selected values for the fitness choice
     WEIGHT_P = 25
     WEIGHT_M = 12.5
-    FIRST_GENERERATION_POPULATION = 8000
+    FIRST_GENERERATION_POPULATION = 1000
     BALLS_COUNT = 4
-
 
     # Pawns initialisation before starting the game
     SOLUTION = [Ball(random.choice(COLORS)) for _ in range(BALLS_COUNT)]
     first_proposal_set = [Board(SOLUTION) for _ in range(FIRST_GENERERATION_POPULATION)]
     first_proposal_set = list(map(lambda x: x.fillRandomly(), first_proposal_set))
-    print("Solution : ", SOLUTION)
     mBoard = Board(SOLUTION)
     geneticSolution(mBoard, first_proposal_set)
     print("Solution : ", SOLUTION)
