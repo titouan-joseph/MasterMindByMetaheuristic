@@ -235,14 +235,13 @@ def geneticSolution(board, proposals):
         # The proposals list only contain our solution (exited the while loop because the solution was found)
         if board.tryCount <= board.maxTry:
             print("Game ended with ", board.tryCount, " attempts. The last board's proposal : ", mBoard.solution)
-            won = True
             print("🥳 solution found ")
         # The proposals list doesn't contain the solution (exited the while loop because excided the number of attempt)
         else:
             print("WARNING You lost !")
             print("Game ended with ", board.tryCount, " attempts. The last board's proposal : ", proposals)
             print("Your score is", proposals[0].getScore(), " %")
-    return won, proposals[0].getScore()
+    return won, proposals[0].getScore(), board.tryCount
 
 
 if __name__ == '__main__':

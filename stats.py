@@ -1,5 +1,6 @@
 import pawn
 import random
+import statistics
 
 if __name__ == '__main__':
 
@@ -25,4 +26,5 @@ if __name__ == '__main__':
     for elem in scores:
         if elem[0]:
             wonCounter += 1
-    print((wonCounter/ITER)*100, "%")
+    print("accuracy: ", (wonCounter/ITER)*100, "%")
+    print("Nombre de tour moyen : ", statistics.mean([elem[2] for elem in scores]))
