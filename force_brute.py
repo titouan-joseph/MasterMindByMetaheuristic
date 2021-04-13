@@ -147,10 +147,7 @@ def proposal_generation(p1: Board, p2: Board):
     return mBoard
 
 
-
-
-
-def geneticSolution(board, proposals):
+def brutForceSolution(board, proposals):
     won = False
     finished = False
     while not finished:
@@ -191,5 +188,5 @@ if __name__ == '__main__':
     first_proposal_set = [Board(SOLUTION) for _ in range(FIRST_GENERERATION_POPULATION)]
     first_proposal_set = list(map(lambda x: x.fillRandomly(), first_proposal_set))
     mBoard = Board(SOLUTION)
-    geneticSolution(mBoard, first_proposal_set)
+    brutForceSolution(mBoard, first_proposal_set)
     print("Solution : ", SOLUTION)
