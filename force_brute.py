@@ -167,7 +167,6 @@ def brutForceSolution(board, proposals):
     if not STATS:
         print("Game ended with ", board.tryCount, " attempts. The last program's proposition was : ", proposals)
         if mBoard.solution in [board.list for board in proposals]:
-            won = True
             print("🥳 solution found ")
             if board.tryCount >= board.maxTry:
                 print("WARNING you lost since you exceeded the 10 allowed attempts")
