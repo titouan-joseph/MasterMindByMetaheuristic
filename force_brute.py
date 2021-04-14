@@ -40,6 +40,7 @@ class Board:
         self.maxTry = 10
 
     def fillRandomly(self):
+        self.list = []
         for _ in range(4):
             self.list.append(Ball(random.choice(COLORS)))
         return self
@@ -103,89 +104,32 @@ def score(p, m):
     return p * WEIGHT_P + m * WEIGHT_M
 
 
-def proposal_mutation(proposal: Board):
-    """
-    :param proposal: the candidate solution
-    :return: the mutated solution
-    """
-    # Chose randomly a given index to swap the value
-    random_index = random.randint(0, len(proposal.list) - 1)
-    current_color = proposal.list[random_index]
-    color_candidate = copy.deepcopy(COLORS)
-    color_candidate = [color for color in color_candidate if color != current_color.color]
-    random_color = random.choice(color_candidate)
-    proposal.solution[random_index].color = random_color
-    return proposal
-
-
-def population_mutation(proposals):
-    """
-    :param proposals: list the candidate solution
-    :return: the mutated solution list
-    """
-    for elem in proposals:
-        proposal_mutation(elem)
-    return proposals
-
-
-def proposal_generation(p1: Board, p2: Board):
-    # Choses from both parents to generate a child proposal
-    # Uses random indexes not to be influenced
-    out = []
-    mBoard = Board(SOLUTION)
-    for index in range(len(p1.list)):
-        propability = random.random()
-
-        if propability > 0.5:
-            out.append(p1.list[index])
-        else:
-            out.append(p2.list[index])
-
-    mBoard.list = out
-    mBoard.history += p1.history
-    mBoard.history += p2.history
-    return mBoard
-
-
-def brutForceSolution(board, proposals):
+def brutForceSolution(board):
     won = False
     finished = False
     while not finished:
-        if len(proposals) == 1:
-            proposals = population_mutation(proposals)
-        else:
-            proposals = [Board(SOLUTION) for _ in range(FIRST_GENERERATION_POPULATION)]
-            proposals = list(map(lambda x: x.fillRandomly(), proposals))
+        board.fillRandomly()
         board.tryCount += 1
-
-        for proposal in proposals:
-            if proposal.getScore() == 100:
-                won = True
-                finished = True
-                break
+        if board.getScore() == 100:
+            won = True
+            break
 
     if not STATS:
-        print("Game ended with ", board.tryCount, " attempts. The last program's proposition was : ", proposals)
-        if mBoard.solution in [board.list for board in proposals]:
-            print("🥳 solution found ")
-            if board.tryCount >= board.maxTry:
-                print("WARNING you lost since you exceeded the 10 allowed attempts")
+        print("Game ended with ", board.tryCount, " attempts. The last program's proposition was : ", board.list)
 
-    return won, proposals[0].getScore()
+    return won
 
 
 if __name__ == '__main__':
 
     WEIGHT_P = 25
     WEIGHT_M = 12.5
-    FIRST_GENERERATION_POPULATION = int(input("How many proposal do you want to generate each round ? :"))
+    FIRST_GENERERATION_POPULATION = 1
     BALLS_COUNT = 4
     STATS = False
 
     # Pawns initialisation before starting the game
     SOLUTION = [Ball(random.choice(COLORS)) for _ in range(BALLS_COUNT)]
-    first_proposal_set = [Board(SOLUTION) for _ in range(FIRST_GENERERATION_POPULATION)]
-    first_proposal_set = list(map(lambda x: x.fillRandomly(), first_proposal_set))
     mBoard = Board(SOLUTION)
-    brutForceSolution(mBoard, first_proposal_set)
+    brutForceSolution(mBoard)
     print("Solution : ", SOLUTION)
